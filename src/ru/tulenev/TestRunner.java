@@ -6,7 +6,7 @@ public class TestRunner {
     }
 
     public interface BooleanTestCase {
-        boolean run();
+        boolean run() throws Exception;
     }
 
     public    void expectTrue(BooleanTestCase cond) {

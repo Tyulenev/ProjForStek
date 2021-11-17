@@ -1,5 +1,7 @@
 package ru.tulenev.ex2;
 
+import ru.tulenev.TestRunner;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +9,7 @@ import java.util.Optional;
 
 public class TaskFinder {
 
-    static class Node {
+    public static class Node {
         Node(int id, String name, Integer priority, List<Node> children) {
             this.id = id;
             this.name = name;
@@ -23,6 +25,19 @@ public class TaskFinder {
         String name;
         Integer priority;
         List<Node> children;
+
+        //Getters
+        public int getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Integer getPriority() {
+            return priority;
+        }
 
         @Override
         public boolean equals(Object o) {
@@ -45,7 +60,7 @@ public class TaskFinder {
         }
     }
 
-    static Node task(int id, String name, int priority) {
+    public static Node task(int id, String name, int priority) {
         return new Node(id, name, priority, null);
     }
 
@@ -70,58 +85,96 @@ public class TaskFinder {
                     group(12, "Аналитика"));
 
 
-    static Node maxPriorityNode = task(-1, "-1", -1);
-    public static Optional<Node> findTaskHavingMaxPriorityInGroup(Node tasks, int groupId) {
+//    static Node maxPriorityNode = task(-11, "-11", -11);
+    static boolean setRes = false;
+    static boolean groupFinded = false;
+    static Optional<Node> returnVal = Optional.empty();
+    static Node maxPriorityNode = null;
+    public static Optional<Node> findTaskHavingMaxPriorityInGroup(Node tasks, int groupId) throws Exception {
         // ------------------------------------------------------------------------------------------------
         // Решение задачи 2
         // ------------------------------------------------------------------------------------------------
+//        System.out.println("Call meth with param: " +
+//                "\ntasks.id - " + tasks.id +
+//                "\ntasks.priority - " + tasks.priority
+////                + "\ntasks.children.size() - " + tasks.children.size() //children м.б. не быть
+//                + "\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+//                );
         final int groupIdIntro = -999;
-        Optional<Node> returnVal = null;
+
 
         if (tasks.isGroup()) {
-            System.out.println("Obj with id-" + tasks.id + " have a children");
             if (tasks.id == groupId) {
-                //Ищем тогда с максимальным приоритетом
-                for (Node n:tasks.children) {
-                    System.out.println("ID here! now, name = " + n.name + ", id = " + n.id);
-                    findTaskHavingMaxPriorityInGroup(n, groupIdIntro);
+                groupFinded = true;
+                if (tasks.children.size()>0) {
+                    for (Node n:tasks.children) {
+                        findTaskHavingMaxPriorityInGroup(n, groupIdIntro);
+                    }
+                    setRes = true;
                 }
+
             } else {
                 for (Node n:tasks.children) {
-                    System.out.println("ID here! now, name = " + n.name + ", id = " + n.id);
                     findTaskHavingMaxPriorityInGroup(n, groupId);
                 }
             }
+            setRes = true;
+        } else {
 
-        } else { //Если нет наследников - то что нужно!
-            System.out.println("CHILDREN! now, name = " + tasks.name + ", id = " + tasks.id);
             if (groupId==groupIdIntro) {
-                if (maxPriorityNode.priority < tasks.priority)  {
+                if (maxPriorityNode != null) {
+                    if (maxPriorityNode.priority < tasks.priority)  {
+                        maxPriorityNode = tasks;
+                    }
+                } else {
                     maxPriorityNode = tasks;
-                    System.out.println("maxPriotityNode: " + maxPriorityNode.id + ", " + maxPriorityNode.name
-                            + ", priority = " + maxPriorityNode.priority);
                 }
             }
         }
-        System.out.println("maxPriotityNode: " + maxPriorityNode.id + ", " + maxPriorityNode.name
-                + ", priority = " + maxPriorityNode.priority);
-        return returnVal;
+
+
+//        if (setRes) {
+//            if (maxPriorityNode == null)
+////            //      && (groupId == groupIdIntro) || (tasks.id == groupId)
+//            {
+//                throw new Exception("Нет группы с таким номером!!!!");
+////            } else if (maxPriorityNode.id == -1) {
+////                returnVal = null;
+//            } else Optional.ofNullable(maxPriorityNode);
+////            return Optional.ofNullable(maxPriorityNode);
+//        }
+        if ((!groupFinded) && (setRes)) {
+            throw new Exception("Нет группы с таким номером!!!!");
+        }
+
+
+
+//        System.out.println("End Call meth with param: " +
+//                        "\ntasks.id - " + tasks.id +
+//                        "\ntasks.priority - " + tasks.priority
+////                + "\ntasks.children.size() - " + tasks.children.size() //children м.б. не быть
+//                        + "\n----------------------------------------------------------------------"
+//        );
+
+        return Optional.ofNullable(maxPriorityNode);
+
     }
 
 
-//    static void testFindTaskHavingMaxPriorityInGroup() {
-//        TestRunner runner = new TestRunner("findTaskHavingMaxPriorityInGroup");
-//
-//        runner.expectException(() -> findTaskHavingMaxPriorityInGroup(tasks, 13));
-//        runner.expectException(() -> findTaskHavingMaxPriorityInGroup(tasks, 2));
-//
-//        runner.expectFalse(() -> findTaskHavingMaxPriorityInGroup(tasks, 12).isPresent());
-//
-//        runner.expectTrue(() -> findTaskHavingMaxPriorityInGroup(tasks, 0).get()
-//                .equals(task(8, "Выполнение тестов", 6)));
-//        runner.expectTrue(() -> findTaskHavingMaxPriorityInGroup(tasks, 1).get()
-//                .equals(task(3, "Подготовка релиза", 4)));
-//
-//        runner.expectTrue(() -> findTaskHavingMaxPriorityInGroup(tasks, 9).get().priority == 3);
-//    }
+
+    public static void testFindTaskHavingMaxPriorityInGroup() {
+        TestRunner runner = new TestRunner("findTaskHavingMaxPriorityInGroup");
+
+        runner.expectException(() -> findTaskHavingMaxPriorityInGroup(tasks, 13));
+        runner.expectException(() -> findTaskHavingMaxPriorityInGroup(tasks, 2));
+
+        runner.expectFalse(() -> findTaskHavingMaxPriorityInGroup(tasks, 12).isPresent());
+
+        runner.expectTrue(() -> findTaskHavingMaxPriorityInGroup(tasks, 0).get()
+                .equals(task(8, "Выполнение тестов", 6)));
+        runner.expectTrue(() -> findTaskHavingMaxPriorityInGroup(tasks, 1).get()
+                .equals(task(3, "Подготовка релиза", 4)));
+
+        runner.expectTrue(() -> findTaskHavingMaxPriorityInGroup(tasks, 9).get().priority == 3);
+    }
 }
