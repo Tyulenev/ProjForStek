@@ -2,12 +2,9 @@ package ru.tulenev.ex2;
 
 import ru.tulenev.TestRunner;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
-public class TaskFinder {
+public class TaskFinderV2 {
 
     public static class Node {
         Node(int id, String name, Integer priority, List<Node> children) {
@@ -85,86 +82,64 @@ public class TaskFinder {
                     group(12, "Аналитика"));
 
 
-//    static Node maxPriorityNode = task(-11, "-11", -11);
-    static boolean setRes = false;
-    static boolean groupFinded = false;
-    static Optional<Node> returnVal = Optional.empty();
     static Node maxPriorityNode = null;
     public static Optional<Node> findTaskHavingMaxPriorityInGroup(Node tasks, int groupId) throws Exception {
         // ------------------------------------------------------------------------------------------------
         // Решение задачи 2
         // ------------------------------------------------------------------------------------------------
-//        System.out.println("Call meth with param: " +
-//                "\ntasks.id - " + tasks.id +
-//                "\ntasks.priority - " + tasks.priority
-////                + "\ntasks.children.size() - " + tasks.children.size() //children м.б. не быть
-//                + "\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-//                );
-        final int groupIdIntro = -999;
-
-
-        if (tasks.isGroup()) {
-            if (tasks.id == groupId) {
-                groupFinded = true;
-                if (tasks.children.size()>0) {
-                    for (Node n:tasks.children) {
-                        findTaskHavingMaxPriorityInGroup(n, groupIdIntro);
-                    }
-                    setRes = true;
-                }
-
-            } else {
-                if (tasks.children.size()>0) {
-                    for (Node n:tasks.children) {
-                        findTaskHavingMaxPriorityInGroup(n, groupId);
-                    }
-                } else setRes = true;
-
-            }
-//            setRes = true;
-        } else {
-
-            if (groupId==groupIdIntro) {
-                if (maxPriorityNode != null) {
-                    if (maxPriorityNode.priority < tasks.priority)  {
-                        maxPriorityNode = tasks;
-                    }
-                } else {
-                    maxPriorityNode = tasks;
+        scanTasks(tasks, groupId);
+        //Печать
+        for (Node nn1:fulNodeList) {
+            System.out.println("id - " + nn1.id + ", Node name - " + nn1.name);
+        }
+        //Поиск максимума
+        for (Node nn1:fulNodeList) {
+            if (!nn1.isGroup()) {
+                if (maxPriorityNode == null) {
+                    maxPriorityNode = nn1;
+                } else if (maxPriorityNode.priority < nn1.priority) {
+                    maxPriorityNode = nn1;
                 }
             }
         }
 
-
-//        if (setRes) {
-//            if (maxPriorityNode == null)
-////            //      && (groupId == groupIdIntro) || (tasks.id == groupId)
-//            {
-//                throw new Exception("Нет группы с таким номером!!!!");
-////            } else if (maxPriorityNode.id == -1) {
-////                returnVal = null;
-//            } else Optional.ofNullable(maxPriorityNode);
-////            return Optional.ofNullable(maxPriorityNode);
-//        }
-        if (!groupFinded)
-//                && (setRes))
-        {
+        if (fulNodeList.size() ==0) {
             throw new Exception("Нет группы с таким номером!!!!");
         }
-
-
-
-//        System.out.println("End Call meth with param: " +
-//                        "\ntasks.id - " + tasks.id +
-//                        "\ntasks.priority - " + tasks.priority
-////                + "\ntasks.children.size() - " + tasks.children.size() //children м.б. не быть
-//                        + "\n----------------------------------------------------------------------"
-//        );
 
         return Optional.ofNullable(maxPriorityNode);
 
     }
 
+    static ArrayList<Node> fulNodeList = new ArrayList<>();
+
+    public static void scanTasks(Node tasks, int groupId) {
+        final int groupIdIntro = -999;
+        if (tasks.isGroup()) {
+            if (tasks.id == groupId) {
+                fulNodeList.add(tasks);
+            }
+
+            if ((tasks.id == groupId) || (groupId == groupIdIntro)) {
+                if (tasks.children.size()>0) {
+                    for (Node n:tasks.children) {
+                        if (n!= null) {
+                            fulNodeList.add(n);
+                        }
+                        scanTasks(n, groupIdIntro);
+                    }
+                }
+            }
+
+            else {
+                if (tasks.children.size() > 0) {
+                    for (Node n : tasks.children) {
+                        scanTasks(n, groupId);
+                    }
+                }
+            }
+        }
+    }
 
 
     public static void testFindTaskHavingMaxPriorityInGroup() {
