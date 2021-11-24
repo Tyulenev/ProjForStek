@@ -1,0 +1,193 @@
+Решение заданий для Стек
+Выполнил: Тюленев А.С.
+mail - lexatul@gmail.com
+Дата: 22.11.2021
+
+JAVA
+++++++++++++++++++++++++++++++++++++++++++++++++
+ex1:
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+   public static boolean match(String inputStr, String pattern) throws Exception {
+        if (pattern.isEmpty()) {
+            System.out.println("Шаблон пустой");
+            return false;
+        } else if (pattern.length() != inputStr.length()) {
+            System.out.println("Длины строк в шаблоне и в строке разные");
+            return false;
+        } else
+            {
+            int index = 0;
+            for (char ch:pattern.toCharArray()) {
+                System.out.println(ch);
+                char charInInputString = inputStr.charAt(index);
+                if (ch=='d') {
+                    System.out.println("[" + index +  "] в шаблоне д.б. цифрой");
+                     if ((charInInputString)>='0' && (charInInputString)<='9') {
+                         System.out.println("+");
+                     } else {
+                         System.out.println("fail!");
+                         return false;
+                     }
+                } else if (ch=='a') {
+                    System.out.println("[" + index +  "] в шаблоне д.б. символом");
+                    if ((charInInputString)>='a' && (charInInputString)<='z') {
+                        System.out.println("+");
+                    } else {
+                        System.out.println("fail!");
+                        return false;
+                    }
+                } else if (ch==' ') {
+                    System.out.println("[" + index +  "] в шаблоне д.б. пробелом");
+                    if (charInInputString == ' ') {System.out.println("+");}
+                    else {
+                        System.out.println("fail!");
+                        return  false;
+                    }
+                } else if (ch=='*') {
+                    System.out.println("[" + index +  "] в шаблоне д.б. любой");
+                    if (((charInInputString)>='a' && (charInInputString)<='z') || ((charInInputString)>='0' && (charInInputString)<='9')) {
+                        System.out.println("+");
+                    } else {
+                        System.out.println("fail!");
+                        return  false;
+                    }
+                } else {
+                    throw new Exception("Недопустимый символ в шаблоне!!!");
+                }
+                index++;
+            }
+        }
+    return true;
+    }
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++
+ex2:
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+    static Node maxPriorityNode = null;
+    public static Optional<Node> findTaskHavingMaxPriorityInGroup(Node tasks, int groupId) throws Exception {
+        // ------------------------------------------------------------------------------------------------
+        // Решение задачи 2
+        // ------------------------------------------------------------------------------------------------
+        scanTasks(tasks, groupId);
+        //Печать
+        for (Node nn1:fulNodeList) {
+            System.out.println("id - " + nn1.id + ", Node name - " + nn1.name);
+        }
+        //Поиск максимума
+        for (Node nn1:fulNodeList) {
+            if (!nn1.isGroup()) {
+                if (maxPriorityNode == null) {
+                    maxPriorityNode = nn1;
+                } else if (maxPriorityNode.priority < nn1.priority) {
+                    maxPriorityNode = nn1;
+                }
+            }
+        }
+
+        if (fulNodeList.size() ==0) {
+            throw new Exception("Нет группы с таким номером!!!!");
+        }
+
+        return Optional.ofNullable(maxPriorityNode);
+
+    }
+
+    static ArrayList<Node> fulNodeList = new ArrayList<>();
+
+    public static void scanTasks(Node tasks, int groupId) {
+        final int groupIdIntro = -999;
+        if (tasks.isGroup()) {
+            if (tasks.id == groupId) {
+                fulNodeList.add(tasks);
+            }
+
+            if ((tasks.id == groupId) || (groupId == groupIdIntro)) {
+                if (tasks.children.size()>0) {
+                    for (Node n:tasks.children) {
+                        if (n!= null) {
+                            fulNodeList.add(n);
+                        }
+                        scanTasks(n, groupIdIntro);
+                    }
+                }
+            }
+
+            else {
+                if (tasks.children.size() > 0) {
+                    for (Node n : tasks.children) {
+                        scanTasks(n, groupId);
+                    }
+                }
+            }
+        }
+    }
+
+
+SQL
+++++++++++++++++++++++++++++++++++++++++++++++++
+ex1:
+++++++++++++++++++++++++++++++++++++++++++++++++
+CREATE FUNCTION [dbo].[select_orders_by_item_name](@name_of_item nvarchar(max))  
+RETURNS @retFindReports TABLE 
+(  
+	order_id int NOT NULL,  
+    custumer nvarchar(max) NOT NULL  ,
+    items_count int NOT NULL
+)   
+AS   
+-- Returns the stock level for the product.  
+BEGIN  
+	INSERT @retFindReports
+	SELECT	dbo.OrderItems.order_id, 
+			dbo.Customers.name ,
+			COUNT(dbo.OrderItems.order_id)
+			--dbo.OrderItems.row_id
+	FROM dbo.OrderItems
+	INNER JOIN  dbo.Orders ON dbo.Orders.row_id = dbo.OrderItems.order_id
+	INNER JOIN  dbo.Customers ON dbo.Customers.row_id = dbo.Orders.customer_id
+	WHERE dbo.OrderItems.name = @name_of_item
+	GROUP BY dbo.OrderItems.order_id, dbo.Customers.name
+	RETURN
+END; 
+++++++++++++++++++++++++++++++++++++++++++++++++
+ex2:
+++++++++++++++++++++++++++++++++++++++++++++++++
+-- не работает
+-- не получилось написать функцию (рекурсию?) работы с деревом
+-- Есть решение только на 1 шаг "вложенности", но он не универсален
+-- По этой причине не выклажываю здесь решение
+++++++++++++++++++++++++++++++++++++++++++++++++
+ex3:
+++++++++++++++++++++++++++++++++++++++++++++++++
+SELECT A.Customer_name FROM (
+--Всего заказов в 2020 с кассовым аппаратом
+	SELECT	table_internal_1.Customer_name as Customer_name,
+		COUNT(table_internal_1.order_id) as count_of_orders
+	FROM	(SELECT DISTINCT	[Customers].name as Customer_name,
+		dbo.OrderItems.order_id
+		FROM dbo.OrderItems
+		INNER JOIN  dbo.Orders ON dbo.Orders.row_id = dbo.OrderItems.order_id
+		INNER JOIN  dbo.Customers ON dbo.Customers.row_id = dbo.Orders.customer_id
+		WHERE (YEAR ([Orders].registered_at) = 2020) 
+		AND ([OrderItems].name = 'Кассовый аппарат')) 
+		AS table_internal_1
+	GROUP BY table_internal_1.Customer_name
+
+
+INTERSECT
+--Всего заказов в 2020
+	SELECT	table_internal_2.Customer_name as Customer_name,
+		COUNT(table_internal_2.order_id) as count_of_orders
+	FROM	(SELECT DISTINCT	[Customers].name as Customer_name,
+		dbo.OrderItems.order_id
+		FROM dbo.OrderItems
+		INNER JOIN  dbo.Orders ON dbo.Orders.row_id = dbo.OrderItems.order_id
+		INNER JOIN  dbo.Customers ON dbo.Customers.row_id = dbo.Orders.customer_id
+		WHERE (YEAR ([Orders].registered_at) = 2020) ) 
+		AS table_internal_2
+	GROUP BY table_internal_2.Customer_name
+) A
